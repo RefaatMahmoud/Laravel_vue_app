@@ -13,16 +13,16 @@
         <hr class="sidebar-divider my-0">
 
         <li class="nav-item">
-            <router-link class="nav-link" exact to="/">
+            <router-link class="nav-link" exact :to="{name:'dashboard'}">
                 <i class="fas fa-fw fa-tachometer-alt"></i>
                 <span>Dashboard</span>
             </router-link>
         </li>
 
         <li class="nav-item">
-            <router-link class="nav-link" exact to="/categories">
+            <router-link class="nav-link" exact :to="{name:'products.index'}">
                 <i class="fas fa-fw fa-list-alt"></i>
-                <span>Categories</span>
+                <span>Products</span>
             </router-link>
         </li>
     </ul>
