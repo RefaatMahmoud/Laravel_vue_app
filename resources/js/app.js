@@ -3,6 +3,7 @@ import App from './App';
 import store from "./store";
 import FlashMessage from "@smartweb/vue-flash-message"
 
+
 import router from "./router/index";
 import 'bootstrap/dist/css/bootstrap.css';
 import 'bootstrap';
