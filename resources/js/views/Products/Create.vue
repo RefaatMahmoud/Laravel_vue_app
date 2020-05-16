@@ -1,8 +1,5 @@
 <template>
     <div class="container-fluid">
-        <div style="width: 100px;font-size: 20px;" class="col-md-12">
-            <!--            <FlashMessage :position="'right top'"></FlashMessage>-->
-        </div>
         <div class="card shadow mb-4">
             <div class="card-header py-3">
                 <h5 style="display: inline-block" class="m-0 font-weight-bold text-primary">Create Product</h5>
@@ -42,11 +39,12 @@
                 </form>
             </div>
         </div>
+        <FlashMessage :position="'right top'"></FlashMessage>
     </div>
 </template>
 
 <script>
-    import Axios from "axios";
+    import store from "../../store";
     import * as ProductService from "../../services/product_service"
 
     export default {
@@ -73,12 +71,23 @@
                     data.append('name', this.productData.name);
                     data.append('image', this.productData.image);
                     const response = await ProductService.create(data);
-                    if (response.status === 422 && response.hasOwnProperty('data')) {
-                        this.errors = response.data.errors;
+                    if (response.status === 201) {
+                        return this.getFlashWithRedirect();
                     }
                 } catch (error) {
-                    alert(error)
+                    console.log(error)
                 }
+            },
+            getFlashWithRedirect() {
+                this.flashMessage.success({
+                    message: 'Product is created successfully',
+                    time: 1000,
+                    blockClass: 'custom-block-class'
+                });
+                //redirect
+                setTimeout(() => {
+                    window.location = store.state.serverUrl + '/products';
+                }, 1500)
             }
         }
     }
