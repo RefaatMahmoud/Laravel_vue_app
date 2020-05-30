@@ -32,10 +32,7 @@
                                 <a href="#" class="text text-primary p-2">
                                     <i class="fa fa-edit"></i>
                                 </a>
-                                <a @click="deleteProduct(product)" class="text text-danger p-2"
-                                   data-target="#exampleModal"
-                                   data-toggle="modal"
-                                   href="#">
+                                <a href="#" class="text text-danger p-2">
                                     <i class="fa fa-times"></i>
                                 </a>
                             </td>
@@ -45,7 +42,6 @@
                 </div>
             </div>
         </div>
-        <FlashMessage :position="'right top'"></FlashMessage>
     </div>
 </template>
 
@@ -64,34 +60,12 @@
         },
         methods: {
             async getProducts() {
-                try {
-                    const response = await ProductService.get();
-                    console.log(response);
-                    this.products = response;
-                } catch (e) {
+               try {
+                   const response = await ProductService.get();
+                   this.products = response;
+               } catch (e) {
                     alert(e);
-                }
-            },
-            async deleteProduct(product) {
-                let confirm_delete = window.confirm('Are you sure to delete this product');
-                if (confirm_delete) {
-                    try {
-                        let response = await ProductService.remove(product.id);
-                        console.log(response.data.status);
-                        if (response.data.status === true) {
-                            this.products = this.products.filter(obj => {
-                                return obj.id != product.id
-                            })
-                            this.flashMessage.success({
-                                message: 'Product is deleted successfully',
-                                time: 1000,
-                                blockClass: 'custom-block-class'
-                            });
-                        }
-                    } catch (error) {
-                        alert(error)
-                    }
-                }
+               }
             }
         }
     }
