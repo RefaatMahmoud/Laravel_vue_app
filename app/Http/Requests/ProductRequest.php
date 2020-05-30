@@ -6,26 +6,40 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class ProductRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     *
-     * @return bool
-     */
     public function authorize()
     {
         return true;
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array
-     */
     public function rules()
     {
-        return [
-            'name'  => 'required|min:2',
-            'image' => 'required|mimes:jpg,jpeg,png',
-        ];
+        switch ($this->method()) {
+            case 'GET':
+            case 'DELETE':
+            {
+                return [];
+            }
+            case 'POST':
+            {
+                return [
+                    'name'  => 'required|min:2|unique:products',
+                    'image' => 'required|mimes:jpg,jpeg,png',
+                ];
+            }
+            case 'PUT':
+            case 'PATCH':
+            {
+                $rules = [];
+                if (request()->has('name')) {
+                    $rules = array_merge($rules, ['name' => 'required|min:2|unique:products,name,'. request()->segment(3) . ',id']);
+                }
+                if (request()->has('image')) {
+                    $rules = array_merge($rules, ['image' => 'required|mimes:jpg,jpeg,png']);
+                }
+                return $rules;
+            }
+            default:
+                break;
+        }
     }
 }

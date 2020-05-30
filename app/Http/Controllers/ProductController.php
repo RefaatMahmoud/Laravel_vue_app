@@ -2,56 +2,39 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\UploadDirectoriesEnum;
 use App\Http\Requests\ProductRequest;
 use App\Http\Resources\ProductResource;
-use App\Product;
-use Illuminate\Http\Request;
+use App\Models\Product;
+use App\Traits\ApiResponseTrait;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\Response;
 
 class ProductController extends Controller
 {
+    use ApiResponseTrait;
+
     public function index()
     {
-        $products = Product::latest()->paginate(10);
-        $response = ProductResource::collection($products);
-        return response()->json(
-            [
-                'products' => $response,
-                'status'   => true
-            ],
-            Response::HTTP_OK
-        );
-    }
-
-    public function create()
-    {
-        //
+        $products = Product::latest()->paginate(config('app.pagination'));
+        $data = ProductResource::collection($products);
+        return $this->returnResponse($data,Response::HTTP_OK);
     }
 
     public function store(ProductRequest $request)
     {
         DB::beginTransaction();
         try {
-            //create
-            $file_name = time() . $request->file('image')->getClientOriginalName();
-            $request->file('image')->storeAs('products', $file_name);
-            Product::create(
+            $product = Product::create(
                 [
                     'name'  => $request->name,
-                    'image' => $file_name,
+                    'image' => uploadFile($request->file('image'), UploadDirectoriesEnum::Product)
                 ]
             );
+            $data = new ProductResource($product);
             DB::commit();
-
-            //response
-            return response()->json(
-                [
-                    'status' => true,
-                ],
-                Response::HTTP_CREATED
-            );
+            return $this->returnResponse($data,Response::HTTP_OK);
         } catch (\Exception $e) {
             DB::rollBack();
             if (app()->environment()) {
@@ -59,29 +42,40 @@ class ProductController extends Controller
             } else {
                 $message = 'something went wrong !';
             }
-            return response()->json(
-                [
-                    'data'   => $message,
-                    'status' => false,
-                ],
-                Response::HTTP_NOT_FOUND
-            );
+            return $this->returnResponse($message,Response::HTTP_NOT_FOUND);
         }
     }
 
     public function show(Product $product)
     {
-        //
+        $data = new ProductResource($product);
+        return $this->returnResponse($data,Response::HTTP_OK);
     }
 
-    public function edit(Product $product)
+    public function update(ProductRequest $request, Product $product)
     {
-        //
-    }
-
-    public function update(Request $request, Product $product)
-    {
-        //
+        try {
+            if (count($request->all())) {
+                $data = [];
+                if ($request->has('name')) {
+                    $data['name'] = $request->name;
+                }
+                if ($request->has('image')) {
+                    $data['image'] = uploadFile($request->file('image'), UploadDirectoriesEnum::Product);
+                }
+                $product->update($data);
+            }
+            $data = new ProductResource($product);
+            return $this->returnResponse($data,Response::HTTP_OK);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            if (app()->environment() == "local") {
+                $message = $e->getMessage() . ' in file ' . $e->getFile() . ' in line' . $e->getLine();
+            } else {
+                $message = 'something went wrong !';
+            }
+            return $this->returnResponse($message,Response::HTTP_NOT_FOUND);
+        }
     }
 
     public function destroy(Product $product)
@@ -89,12 +83,7 @@ class ProductController extends Controller
         try {
             $product->delete();
             Storage::delete('products/' . $product->image);
-            return response()->json(
-                [
-                    'status' => true,
-                ],
-                Response::HTTP_OK
-            );
+            return $this->returnResponse('Product Deleted Successfully',Response::HTTP_OK);
         } catch (\Exception $e) {
             DB::rollBack();
             if (app()->environment()) {
@@ -102,13 +91,7 @@ class ProductController extends Controller
             } else {
                 $message = 'something went wrong !';
             }
-            return response()->json(
-                [
-                    'data'   => $message,
-                    'status' => false,
-                ],
-                Response::HTTP_NOT_FOUND
-            );
+            return $this->returnResponse($message,Response::HTTP_NOT_FOUND);
         }
     }
 }
