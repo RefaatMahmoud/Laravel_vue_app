@@ -34,7 +34,7 @@ class ProductController extends Controller
             );
             $data = new ProductResource($product);
             DB::commit();
-            return $this->returnResponse($data,Response::HTTP_OK);
+            return $this->returnResponse($data, Response::HTTP_CREATED);
         } catch (\Exception $e) {
             DB::rollBack();
             if (app()->environment()) {
